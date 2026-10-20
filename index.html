@@ -1,116 +1,212 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>FlyBet.ke - Aviator</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,Arial}
-body{background:#080808;color:#fff;max-width:480px;margin:0 auto}
-.top{background:linear-gradient(90deg,#FFC107,#ff9800);color:#000;padding:12px 14px;display:flex;justify-content:space-between;font-weight:900;position:sticky;top:0;z-index:99}
-.top small{background:#000;color:#FFC107;padding:3px 9px;border-radius:20px;font-size:11px}
-.bal-bar{background:#151515;border:1px solid #222;margin:10px;border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center}
-.bal-bar b{color:#00ff66;font-size:20px}
-.game{background:radial-gradient(ellipse at center,#1f1f1f 0%,#000 70%);margin:10px;border-radius:18px;height:360px;border:2px solid #FFC107;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.mult{font-size:72px;font-weight:900;color:#FFC107}
-.sub{color:#aaa;font-size:13px;margin-top:6px}
-.plane{position:absolute;left:22px;bottom:28px;font-size:52px;transition:all .6s ease-out}
-.controls{margin:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.card{background:#161616;border:1px solid #2a2a2a;border-radius:14px;padding:12px}
-.card label{font-size:10px;color:#888}
-.card input{width:100%;background:#000;border:1px solid #333;color:#fff;padding:12px;border-radius:10px;margin-top:6px;font-weight:800;text-align:center;font-size:16px}
-.btn{width:100%;padding:15px;border:none;border-radius:30px;font-weight:900;font-size:17px;margin-top:10px}
-.btn-bet{background:#FFC107;color:#000}
-.btn-cash{background:#00ff66;color:#000;display:none}
-.history{margin:0 10px;display:flex;gap:6px;overflow-x:auto;padding:8px 0}
-.history span{padding:5px 10px;border-radius:20px;font-size:12px;font-weight:800;flex-shrink:0}
-
-/* NEW CLEAN DEPOSIT DESIGN LIKE YOUR SCREENSHOT */
-.deposit{background:#101010;border:1px solid #222;margin:10px;border-radius:20px;padding:18px}
-.deposit h2{font-size:22px;font-weight:900;margin-bottom:16px}
-.mpesa-card{background:linear-gradient(90deg,#0f2e1f,#143d28);border:1.5px solid #00a651;border-radius:16px;padding:14px;display:flex;align-items:center;justify-content:space-between}
-.mpesa-icon{background:#00a651;width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px}
-.mpesa-info b{font-size:17px;display:block}
-.mpesa-info span{font-size:13px;color:#aaa}
-.check{width:26px;height:26px;border-radius:50%;border:2px solid #00a651;display:flex;align-items:center;justify-content:center;color:#00a651;font-weight:900}
-.deposit label{font-size:14px;color:#bbb;margin:16px 0 8px;display:block}
-.deposit .amount{font-size:42px;font-weight:900;background:transparent;border:none;color:#fff;width:100%;padding:10px 0}
-.deposit .amount:focus{outline:none}
-.pay-btn{width:100%;background:#fff;color:#000;padding:16px;border-radius:30px;font-weight:900;font-size:16px;border:none;margin-top:18px}
-.msg{text-align:center;font-size:12px;min-height:18px;margin-top:10px;font-weight:700}
-.footer{padding:18px;text-align:center;color:#555;font-size:10px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FlyBet Kenya | Aviator</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #0b1019;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+    header {
+      background: #151e2d;
+      padding: 17px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #ed354c;
+    }
+    .logo { font-size: 22px; font-weight: bold; }
+    .logo span { color: #ff4055; }
+    .tag { font-size: 11px; color: #bdc9d9; }
+    main { max-width: 750px; margin: auto; padding: 15px; }
+    .notice {
+      background: #302714;
+      border: 1px solid #826522;
+      color: #ffe19a;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .panel {
+      background: #151e2d;
+      border: 1px solid #28364b;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 15px;
+    }
+    .balance {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .muted { color: #9eacc0; font-size: 12px; }
+    .amount { font-size: 23px; font-weight: bold; margin-top: 5px; }
+    button {
+      border: 0;
+      border-radius: 7px;
+      padding: 12px 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .deposit { background: #22c985; color: #071c14; }
+    .game {
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(ellipse at 20% 100%, #263e63, #101827 60%);
+      border-radius: 10px;
+      height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      margin-top: 15px;
+    }
+    .game h1 { color: #ff4055; font-size: 42px; margin: 10px; }
+    .plane { font-size: 38px; }
+    .game p { color: #c2cede; font-size: 12px; }
+    .fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 15px;
+    }
+    label { font-size: 12px; color: #bac6d8; }
+    input {
+      width: 100%;
+      margin-top: 7px;
+      background: #0b1019;
+      border: 1px solid #34445c;
+      border-radius: 7px;
+      color: white;
+      padding: 13px 10px;
+      font-size: 16px;
+    }
+    .stake {
+      background: #ff4055;
+      color: white;
+      width: 100%;
+      margin-top: 15px;
+    }
+    .history { color: #c1cede; font-size: 13px; line-height: 1.8; }
+    footer {
+      padding: 22px;
+      color: #8493a8;
+      text-align: center;
+      font-size: 11px;
+    }
+    @media (max-width: 420px) {
+      .logo { font-size: 18px; }
+      .fields { gap: 8px; }
+      .amount { font-size: 19px; }
+    }
+  </style>
 </head>
 <body>
-<div class="top"><span>✈️ FLYBET.KE</span><small>● LIVE AVIATOR</small></div>
-<div class="bal-bar"><span>BALANCE <b id="balance">KES 0.00</b></span><span style="font-size:11px;color:#aaa">Aviator</span></div>
+  <header>
+    <div>
+      <div class="logo">FLYBET <span>KENYA</span></div>
+      <div class="tag">AVIATOR GAME PLATFORM</div>
+    </div>
+    <div class="tag">KENYA · KSh</div>
+  </header>
 
-<div class="game" id="game"><div class="mult" id="mult">1.00x</div><div class="sub" id="status">Waiting for next round</div><div class="plane" id="plane">✈️</div></div>
+  <main>
+    <div class="notice">
+      <strong>Preview mode:</strong> This interface does not accept
+      real deposits, place real bets, or pay winnings. Connect and
+      verify the authorized backend before launching real-money play.
+    </div>
 
-<div class="controls">
-<div class="card"><label>BET AMOUNT KES</label><input type="number" id="betAmt" value="100" min="10"><button class="btn btn-bet" id="betBtn" onclick="placeBet()">BET</button><button class="btn btn-cash" id="cashBtn" onclick="cashout()">CASHOUT <span id="cashVal"></span></button></div>
-<div class="card"><label>POTENTIAL WIN</label><input id="winPot" value="0.00" readonly><label style="margin-top:10px;display:block">LAST WIN</label><input id="lastWin" value="0.00" readonly style="color:#00ff66"></div>
-</div>
+    <section class="panel balance">
+      <div>
+        <div class="muted">ACCOUNT BALANCE</div>
+        <div class="amount">KSh 0.00</div>
+      </div>
+      <button class="deposit" onclick="depositInfo()">Deposit</button>
+    </section>
 
-<div class="history" id="hist"></div>
+    <section class="panel">
+      <div class="muted">AVIATOR · GAME AREA</div>
+      <div class="game">
+        <div class="plane">✈️</div>
+        <h1>FLYBET</h1>
+        <p>Game display preview — no live multiplier</p>
+      </div>
 
-<!-- CLEAN DEPOSIT - NO TILL NUMBER SHOWN PUBLICLY -->
-<div class="deposit" id="dep">
-<h2>Deposit Funds</h2>
-<div class="mpesa-card">
-<div style="display:flex;gap:12px;align-items:center"><div class="mpesa-icon">📱</div><div class="mpesa-info"><b>M-PESA</b><span>Fast and secure payments</span></div></div>
-<div class="check">✓</div>
-</div>
-<label>Amount (KSh)</label>
-<input class="amount" id="depAmount" type="number" value="100" min="10">
-<button class="pay-btn" onclick="pay()">Pay with M-PESA</button>
-<div class="msg" id="msg"></div>
-<input id="phone" type="hidden" value="254">
-</div>
+      <div class="fields">
+        <div>
+          <label for="stake1">STAKE PLACE 1 (KSh)</label>
+          <input id="stake1" type="number" min="50"
+                 step="1" value="50">
+        </div>
+        <div>
+          <label for="stake2">STAKE PLACE 2 (KSh)</label>
+          <input id="stake2" type="number" min="50"
+                 step="1" value="50">
+        </div>
+      </div>
 
-<div class="footer">FlyBet - Licensed Gaming | 18+ Play Responsibly | © 2026<br>Secure M-PESA Payments</div>
+      <button class="stake" onclick="recordStake()">
+        Preview Stake
+      </button>
+      <p class="muted">Minimum stake: KSh 50 per place.</p>
+    </section>
 
-<script>
-// SECURE CONFIG - Till hidden from public UI, but used in backend
-const TILL_NUMBER = "1833074"; // Your actual Till - kept in code, not shown
-const CONSUMER_KEY = "f1Oh..."; // From your Daraja app
+    <section class="panel">
+      <strong>Deposit with M-PESA</strong>
+      <p class="muted">
+        Minimum deposit: KSh 100. Payments are not enabled yet.
+      </p>
+      <button class="deposit" onclick="depositInfo()">
+        M-PESA Deposit Information
+      </button>
+    </section>
 
-let bal=0, bet=0, mult=1, flying=false, hasBet=false, iv;
-const balEl=document.getElementById('balance'), multEl=document.getElementById('mult'), statusEl=document.getElementById('status'), plane=document.getElementById('plane'), hist=document.getElementById('hist'), msg=document.getElementById('msg');
-function updBal(){balEl.textContent='KES '+bal.toFixed(2); localStorage.setItem('flybet_bal',bal.toString());}
-function placeBet(){
- bet=parseFloat(document.getElementById('betAmt').value);
- if(bet<10){alert('Min KES 10');return;}
- if(bet>bal){msg.textContent='Low balance - Deposit first';msg.style.color='#ff4444';document.getElementById('dep').scrollIntoView({behavior:'smooth'});return;}
- if(flying&&hasBet)return;
- bal-=bet;updBal();hasBet=true;
- document.getElementById('betBtn').style.display='none';document.getElementById('cashBtn').style.display='block';
- statusEl.textContent='Bet placed KES '+bet; if(!flying) start();
-}
-function start(){
- flying=true; mult=1; multEl.textContent='1.00x'; multEl.style.color='#FFC107';
- plane.style.left='22px'; plane.style.bottom='28px';
- setTimeout(()=>{plane.style.left='68%';plane.style.bottom='210px';},80);
- iv=setInterval(()=>{mult+=0.05+mult*0.013; multEl.textContent=mult.toFixed(2)+'x'; document.getElementById('cashVal').textContent=hasBet?(bet*mult).toFixed(0):''; if(hasBet)document.getElementById('winPot').value=(bet*mult).toFixed(2); if(mult>1.2&&Math.random()>0.973)crash();},110);
-}
-function crash(){clearInterval(iv);flying=false;multEl.style.color='#ff2222';multEl.textContent='CRASH '+mult.toFixed(2)+'x';statusEl.textContent='Crashed! Next round...';plane.style.left='82%';plane.style.bottom='14px';addHist(mult);if(hasBet){hasBet=false;document.getElementById('winPot').value='0.00';}document.getElementById('betBtn').style.display='block';document.getElementById('cashBtn').style.display='none';setTimeout(()=>{multEl.textContent='1.00x';multEl.style.color='#FFC107';statusEl.textContent='Waiting for next round';plane.style.left='22px';plane.style.bottom='28px';},2500);}
-function cashout(){if(!hasBet||!flying)return;clearInterval(iv);flying=false;let win=bet*mult;bal+=win;updBal();multEl.style.color='#00ff66';statusEl.textContent='Cashed out '+mult.toFixed(2)+'x Won KES '+win.toFixed(2);document.getElementById('lastWin').value=win.toFixed(2);addHist(mult);hasBet=false;document.getElementById('betBtn').style.display='block';document.getElementById('cashBtn').style.display='none';document.getElementById('winPot').value='0.00';}
-function addHist(m){let s=document.createElement('span');s.textContent=m.toFixed(2)+'x';s.style.background=m<2?'#ff2a2a':m<10?'#FFC107':'#00ff66';s.style.color=m<2?'#fff':m<10?'#000':'#000';hist.prepend(s);if(hist.children.length>16)hist.removeChild(hist.lastChild);}
+    <section class="panel">
+      <strong>Activity History</strong>
+      <div id="history" class="history">
+        No activity recorded in this page session.
+      </div>
+    </section>
+  </main>
 
-function pay(){
- let amount=parseFloat(document.getElementById('depAmount').value);
- if(amount<10){msg.textContent='Min deposit KES 10';msg.style.color='#ff4444';return;}
- // DEMO - After Daraja Go Live, this will trigger STK Push to Till 1833074 securely
- // Currently simulates instant credit without showing Till number
- msg.style.color='#00ff66';
- msg.textContent='Processing M-PESA KES '+amount+'...';
- setTimeout(()=>{
-   bal+=amount; updBal();
-   msg.textContent='✅ KES '+amount+' added! You can now BET. (Secure M-PESA via Till '+TILL_NUMBER+' - hidden from public)';
- },1200);
-}
+  <footer>
+    FlyBet Kenya · Interface preview<br>
+    Real-money gambling requires applicable Kenyan licensing,
+    age verification, secure payments, and responsible-gambling controls.
+  </footer>
 
-(function(){let saved=localStorage.getItem('flybet_bal');if(saved){bal=parseFloat(saved);updBal();}})();
-</script>
+  <script>
+    function depositInfo() {
+      alert(
+        "M-PESA deposits are not connected yet. " +
+        "A verified Daraja integration is required."
+      );
+    }
+
+    function recordStake() {
+      const first = Number(document.getElementById("stake1").value);
+      const second = Number(document.getElementById("stake2").value);
+
+      if (!Number.isInteger(first) || first < 50 ||
+          !Number.isInteger(second) || second < 50) {
+        alert("Enter at least KSh 50 in each stake field.");
+        return;
+      }
+
+      document.getElementById("history").textContent =
+        "Preview only: Place 1 KSh " + first +
+        " · Place 2 KSh " + second +
+        ". No real bet was placed.";
+    }
+  </script>
 </body>
 </html>
