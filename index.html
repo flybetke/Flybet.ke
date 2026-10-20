@@ -1,177 +1,57 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aviator Kenya - Play & Win</title>
+<title>AVIATOR - Kenya's #1 Crash Game</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
-body{background:#FFB900}
-.top-bar{background:#000;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
-.logo{font-weight:900;font-size:18px}
-.bal{background:#111;color:#00ff88;padding:6px 14px;border-radius:20px;font-weight:800;font-size:13px}
-.auth-btns{display:flex;gap:8px}
-.auth-btn{padding:8px 16px;border-radius:20px;border:none;font-weight:800;font-size:13px;cursor:pointer}
-.login{background:#fff;color:#000}
-.signup{background:#FFB900;color:#000}
-.game-area{background:#0d0f1a;border-radius:20px;height:340px;position:relative;margin:14px;overflow:hidden;border:2px solid #000}
-#gameCanvas{width:100%;height:100%}
-#multiplier{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:64px;font-weight:900;color:#fff;text-shadow:0 0 20px #FFB900}
-#crashedMsg{position:absolute;top:18%;left:50%;transform:translateX(-50%);background:#ff0040;color:#fff;padding:8px 18px;border-radius:20px;font-weight:900;display:none}
-.history{display:flex;gap:6px;overflow-x:auto;padding:8px 14px}
-.h{padding:6px 12px;border-radius:20px;font-weight:800;font-size:13px;flex-shrink:0}
-.h.low{background:#000;color:#aaa}
-.h.high{background:#00c851;color:#fff}
-.bets{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px}
-.bet-card{background:#111;padding:14px;border-radius:18px}
-.bet-card h4{color:#FFB900;font-size:12px;display:flex;justify-content:space-between;margin-bottom:8px}
-.bet-input{width:100%;background:#000;color:#fff;border:1px solid #333;padding:12px;border-radius:10px;text-align:center;font-weight:800;font-size:18px;margin-bottom:8px}
-.btn{width:100%;padding:15px;border:none;border-radius:12px;font-weight:900}
-.btn-green{background:#00c851;color:#fff}
-.btn-red{background:#ff3d00;color:#fff}
-.action-card{background:#111;border-radius:20px;margin:14px;padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.dep-btn-main{background:#FFB900;color:#000;padding:16px;border:none;border-radius:12px;font-weight:900;font-size:15px}
-.wd-btn{background:#222;color:#fff;padding:16px;border:1px solid #333;border-radius:12px;font-weight:800}
-/* MODALS */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:99;padding:20px}
-.modal.active{display:flex}
-.modal-box{background:#fff;width:100%;max-width:360px;border-radius:20px;padding:22px}
-.modal-box h3{text-align:center;margin-bottom:14px;font-weight:900}
-.modal-box input{width:100%;padding:14px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;font-size:15px}
-.modal-box button{width:100%;padding:14px;border-radius:12px;border:none;font-weight:900;margin-top:6px;cursor:pointer}
-.primary{background:#000;color:#fff}
-.secondary{background:#FFB900;color:#000}
-.link{text-align:center;margin-top:12px;font-size:13px;color:#666}
-.link b{color:#000;cursor:pointer}
-.status{color:#00c851;text-align:center;margin-top:10px;font-size:13px;font-weight:700}
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
+body{background:#FFC107;min-height:100vh;padding:12px}
+.card{background:#fff;border-radius:24px;padding:24px 16px;text-align:center;max-width:420px;margin:0 auto}
+.login-wall{max-width:420px;margin:14px auto;background:#111;border-radius:24px;padding:20px;color:#fff}
+#gameStage{width:100%;height:320px;background:linear-gradient(#87CEEB,#1a1a2e);border-radius:16px;position:relative;overflow:hidden;margin:14px 0;border:2px solid #333}
+#plane{position:absolute;left:20px;bottom:30px;font-size:48px}
+#plane.flying{animation:fly 8s linear forwards}
+@keyframes fly{0%{left:20px;bottom:30px}50%{left:180px;bottom:180px}100%{left:400px;bottom:300px;opacity:0}}
+#multiplier{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:56px;font-weight:900;color:#FFC107;text-shadow:0 0 20px #000}
+input{width:100%;padding:14px;border-radius:12px;border:none;margin-bottom:10px;text-align:center}
+.btn{border:none;border-radius:999px;padding:16px;width:100%;font-weight:800;cursor:pointer}
+.btn-yellow{background:#FFC107;color:#000}
+.btn-green{background:#00ff88;color:#000}
+.hidden{display:none}
 </style>
 </head>
 <body>
-<div class="top-bar">
-  <div class="logo">AVIATOR KE</div>
-  <div style="display:flex;gap:10px;align-items:center">
-    <div class="bal" id="bal">KES 0.00</div>
-    <div class="auth-btns" id="authBtns">
-      <button class="auth-btn login" onclick="openModal('loginModal')">LOGIN</button>
-      <button class="auth-btn signup" onclick="openModal('signupModal')">SIGNUP</button>
-    </div>
-    <div id="userBox" style="display:none;color:#FFB900;font-weight:800;font-size:13px"></div>
-  </div>
+
+<div class="card">
+<h1>✈️ AVIATOR</h1>
+<p style="font-size:12px;color:#555">Fly High, Win Big - Kenya's #1 Crash Game</p>
+
+<div id="gameStage" class="hidden">
+<div id="multiplier">1.00x</div>
+<div id="plane">✈️</div>
+<svg style="position:absolute;bottom:0;left:0;width:100%;height:100%" viewBox="0 0 400 320"><polyline id="line" fill="none" stroke="#FFC107" stroke-width="3" points="20,290"/></svg>
 </div>
 
-<div class="game-area"><canvas id="gameCanvas"></canvas><div id="multiplier">1.00x</div><div id="crashedMsg">CRASHED!</div></div>
-<div class="history" id="hist"></div>
-
-<div class="bets">
-  <div class="bet-card"><h4><span>BET 1</span><span id="s1" style="color:#888">Ready</span></h4><input class="bet-input" id="b1" value="100" type="number"><button class="btn btn-green" id="btn1" onclick="bet(1)">BET</button></div>
-  <div class="bet-card"><h4><span>BET 2</span><span id="s2" style="color:#888">Ready</span></h4><input class="bet-input" id="b2" value="100" type="number"><button class="btn btn-green" id="btn2" onclick="bet(2)">BET</button></div>
+<div id="preLogin">
+<div style="margin:20px 0;font-size:48px">🔒</div>
+<h3>LOGIN REQUIRED</h3>
+<p style="font-size:12px;color:#666">No demo play - Must login to fly</p>
+<button class="btn btn-yellow" style="margin-top:14px" onclick="loginWall.scrollIntoView({behavior:'smooth'})">LOGIN TO FLY</button>
 </div>
 
-<div class="action-card">
-  <button class="dep-btn-main" onclick="openModal('depositModal')">💳 DEPOSIT</button>
-  <button class="wd-btn" onclick="alert('Withdraw - Contact support for M-Pesa withdrawal')">💸 WITHDRAW</button>
+<div id="postLogin" class="hidden">
+<div style="display:flex;gap:8px">
+<input id="betAmount" value="100" type="number" style="flex:1">
+<button id="betBtn" class="btn btn-green" style="flex:1" onclick="placeBet()">BET</button>
+</div>
+<button id="cashBtn" class="btn btn-yellow hidden" onclick="cashOut()" style="margin-top:8px;background:#fff">CASHOUT <span id="cashMult">1.00x</span></button>
+</div>
 </div>
 
-<!-- LOGIN -->
-<div class="modal" id="loginModal"><div class="modal-box">
-  <h3>Welcome Back</h3>
-  <input id="loginPhone" placeholder="Phone 07... / 2547...">
-  <input id="loginPass" type="password" placeholder="Password">
-  <button class="primary" onclick="login()">LOGIN</button>
-  <div class="link">No account? <b onclick="switchM('loginModal','signupModal')">Signup</b></div>
-  <button class="secondary" style="background:#eee;margin-top:10px" onclick="closeModal('loginModal')">Close</button>
-  <div class="status" id="loginStatus"></div>
-</div></div>
+<div class="login-wall" id="loginWall">
+<h3 style="color:#FFC107;text-align:center" id="authTitle">🔒 LOGIN REQUIRED</h3>
 
-<!-- SIGNUP -->
-<div class="modal" id="signupModal"><div class="modal-box">
-  <h3>Create Account</h3>
-  <input id="signName" placeholder="Full Name">
-  <input id="signPhone" placeholder="M-Pesa Phone 07...">
-  <input id="signPass" type="password" placeholder="Create Password (min 4)">
-  <button class="secondary" onclick="signup()">CREATE ACCOUNT</button>
-  <div class="link">Have account? <b onclick="switchM('signupModal','loginModal')">Login</b></div>
-  <button style="background:#eee;margin-top:10px" class="primary" onclick="closeModal('signupModal')">Close</button>
-  <div class="status" id="signStatus"></div>
-</div></div>
-
-<!-- DEPOSIT - NO TILL SHOWN -->
-<div class="modal" id="depositModal"><div class="modal-box">
-  <h3>💳 Deposit</h3>
-  <p style="text-align:center;color:#666;font-size:13px;margin-bottom:12px">Instant M-Pesa • Min KES 100</p>
-  <input id="depPhone" placeholder="2547XXXXXXXX">
-  <input id="depAmount" type="number" value="100" min="100" placeholder="Amount">
-  <button class="secondary" id="depBtn" onclick="deposit()">DEPOSIT NOW</button>
-  <button style="background:#eee" onclick="closeModal('depositModal')">Cancel</button>
-  <div class="status" id="depStatus"></div>
-</div></div>
-
-<script>
-const API="https://aviator-kenya-co-ke.onrender.com";
-let balance=parseFloat(localStorage.getItem('bal')||'0');
-let curUser=JSON.parse(localStorage.getItem('user')||'null');
-let curMult=1,crashed=false,crashAt=2,bets={1:{on:false,amt:0},2:{on:false,amt:0}};
-let history=[3.21,1.45,2.12,8.5,1.02,15.3,2.34];
-function updBal(){document.getElementById('bal').innerText=`KES ${balance.toFixed(2)}`;localStorage.setItem('bal',balance)}
-function checkUser(){if(curUser){document.getElementById('authBtns').style.display='none';let ub=document.getElementById('userBox');ub.style.display='block';ub.innerText=curUser.name.split(' ')[0]+' • LOGOUT';ub.onclick=logout;}}
-checkUser();updBal();
-function openModal(id){document.getElementById(id).classList.add('active')}
-function closeModal(id){document.getElementById(id).classList.remove('active')}
-function switchM(a,b){closeModal(a);openModal(b)}
-function signup(){
-  let name=document.getElementById('signName').value.trim();
-  let phone=document.getElementById('signPhone').value.trim();
-  let pass=document.getElementById('signPass').value.trim();
-  let st=document.getElementById('signStatus');
-  if(!name||!phone||!pass){st.innerText='Fill all fields';return}
-  if(pass.length<4){st.innerText='Password min 4 chars';return}
-  if(phone.startsWith('0'))phone='254'+phone.slice(1);
-  let user={name,phone,pass}; localStorage.setItem('user',JSON.stringify(user)); localStorage.setItem('bal','0'); balance=0; curUser=user;
-  st.innerText='✅ Account created!'; st.style.color='#00c851';
-  setTimeout(()=>{closeModal('signupModal'); checkUser(); updBal();},1000);
-}
-function login(){
-  let phone=document.getElementById('loginPhone').value.trim();
-  let pass=document.getElementById('loginPass').value.trim();
-  let st=document.getElementById('loginStatus');
-  if(phone.startsWith('0'))phone='254'+phone.slice(1);
-  let saved=JSON.parse(localStorage.getItem('user')||'null');
-  if(!saved){st.innerText='No account found. Signup first.';return}
-  if(saved.phone!==phone || saved.pass!==pass){st.innerText='Wrong phone or password';return}
-  curUser=saved; localStorage.setItem('user',JSON.stringify(saved));
-  st.innerText='✅ Login success!'; setTimeout(()=>{closeModal('loginModal'); checkUser();},800);
-}
-function logout(){localStorage.removeItem('user'); curUser=null; document.getElementById('authBtns').style.display='flex'; document.getElementById('userBox').style.display='none';}
-function bet(n){
-  if(!curUser){openModal('loginModal'); document.getElementById('loginStatus').innerText='Login to play'; return}
-  let amt=parseInt(document.getElementById('b'+n).value);
-  let btn=document.getElementById('btn'+n); let s=document.getElementById('s'+n);
-  if(bets[n].on){let win=bets[n].amt*curMult; balance+=win; updBal(); bets[n].on=false; s.innerText=`Won ${win.toFixed(2)}`; btn.className='btn btn-green'; btn.innerText='BET';}
-  else{if(balance<amt){openModal('depositModal'); document.getElementById('depStatus').innerText='Low balance. Deposit to play.'; return} balance-=amt; updBal(); bets[n]={on:true,amt:amt}; s.innerText='In game'; btn.className='btn btn-red';}
-}
-async function deposit(){
-  if(!curUser){openModal('signupModal'); return}
-  let phone=document.getElementById('depPhone').value.trim()||curUser.phone;
-  let amt=document.getElementById('depAmount').value.trim();
-  let st=document.getElementById('depStatus'); let btn=document.getElementById('depBtn');
-  if(!phone||!amt){st.innerText='Enter phone and amount';return}
-  if(parseInt(amt)<100){st.innerText='Min 100 KES';return}
-  if(phone.startsWith('0'))phone='254'+phone.slice(1);
-  if(phone.startsWith('+'))phone=phone.slice(1);
-  btn.disabled=true; btn.innerText='Sending...'; st.innerText='Sending M-Pesa prompt to '+phone+'...';
-  try{
-    let r=await fetch(API+'/api/mpesa/stkpush',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,amount:amt})});
-    let d=await r.json();
-    if(r.ok){st.innerText='✅ Check phone and enter M-Pesa PIN'; st.style.color='#00c851'; setTimeout(()=>{balance+=parseInt(amt); updBal(); st.innerText+=' - Balance updated!'; btn.innerText='SUCCESS';},5000);}
-    else{st.innerText='❌ '+(d.message||'Failed'); btn.disabled=false; btn.innerText='DEPOSIT NOW'}
-  }catch(e){st.innerText='Network - Backend waking up, try again in 20s'; btn.disabled=false; btn.innerText='DEPOSIT NOW'}
-}
-// GAME ENGINE
-const canvas=document.getElementById('gameCanvas');const ctx=canvas.getContext('2d');
-function resize(){canvas.width=canvas.offsetWidth*2;canvas.height=canvas.offsetHeight*2}resize();
-function draw(m){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.strokeStyle='rgba(255,255,255,0.08)';for(let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(0,i*canvas.height/4);ctx.lineTo(canvas.width,i*canvas.height/4);ctx.stroke()}let t=Math.min((m-1)/12,0.85);ctx.beginPath();ctx.strokeStyle='#FFB900';ctx.lineWidth=6;for(let i=0;i<=100;i++){let p=i/100;let x=p*canvas.width*0.85;let y=canvas.height-Math.pow(p,1.7)*canvas.height*0.75-30;if(i==0)ctx.moveTo(x,y);else ctx.lineTo(x,y)}ctx.stroke();let px=t*canvas.width*0.85;let py=canvas.height-Math.pow(t,1.7)*canvas.height*0.75-30;ctx.font='48px serif';ctx.fillText('✈️',px,py);}
-function renderHist(){let el=document.getElementById('hist');el.innerHTML='';history.slice(0,15).forEach(v=>{let d=document.createElement('div');let n=parseFloat(v);d.className='h '+(n<2?'low':'high');d.innerText=v+'x';el.appendChild(d)})}
-function newRound(){curMult=1;crashed=false;document.getElementById('crashedMsg').style.display='none';document.getElementById('multiplier').style.color='#fff';crashAt=Math.random()<0.4?(Math.random()*1.5+1):Math.random()<0.85?(Math.random()*4+1.5):(Math.random()*50+10);let iv=setInterval(()=>{if(crashed)return;curMult+=0.01+curMult*0.006;document.getElementById('multiplier').innerText=curMult.toFixed(2)+'x';draw(curMult);if(bets[1].on)document.getElementById('btn1').innerText=`CASHOUT ${(bets[1].amt*curMult).toFixed(2)}`;if(bets[2].on)document.getElementById('btn2').innerText=`CASHOUT ${(bets[2].amt*curMult).toFixed(2)}`;if(curMult>=crashAt){crashed=true;clearInterval(iv);document.getElementById('multiplier').style.color='#ff0040';let cm=document.getElementById('crashedMsg');cm.style.display='block';cm.innerText=`CRASHED @ ${curMult.toFixed(2)}x`;history.unshift(curMult.toFixed(2));renderHist();if(bets[1].on){bets[1].on=false;document.getElementById('btn1').className='btn btn-green';document.getElementById('btn1').innerText='BET'}if(bets[2].on){bets[2].on=false;document.getElementById('btn2').className='btn btn-green';document.getElementById('btn2').innerText='BET'}setTimeout(newRound,3000);}},60);}renderHist();newRound();
-</script>
-</body>
-</html>
+<div id="loginForm">
+<input id="lPhone" placeholder="Phone: 2547XXXXXXXX">
+<input id
