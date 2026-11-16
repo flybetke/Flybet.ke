@@ -142,14 +142,28 @@ document.getElementById("balance").textContent=balance.toFixed(2);
 document.getElementById("dashboardBalance").textContent=balance.toFixed(2);
 }
 
+let authMode="login";
 function showAuth(type){
-document.getElementById("auth").classList.remove("hidden");
-document.getElementById("authTitle").textContent=
-type==="login"?"Player Login":"Player Registration";
+  authMode=type;
+  document.getElementById("auth").classList.remove("hidden");
+  document.getElementById("authTitle").textContent=
+  type==="login"?"Player Login":"Player Registration";
 }
 
-function accountAction(){
-alert("Secure registration and login will be connected in Step 3.");
+async function accountAction(){
+  const username=document.getElementById("username").value.trim();
+  const password=document.getElementById("password").value;
+  if(!username||!password){ alert("Enter username and password"); return; }
+  const url=authMode==="login"?"/api/login":"/api/register";
+  try{
+    const res=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,password})});
+    const data=await res.json();
+    if(!res.ok){ alert(data.error||"Failed"); return; }
+    if(data.token) localStorage.setItem("flybet_token",data.token);
+    if(data.user) document.getElementById("username").value=data.user.username||username;
+    alert(authMode==="login"?"Logged in as "+username:"Account created for "+username);
+    document.getElementById("auth").classList.add("hidden");
+  }catch(e){ alert("Server not reachable. Try again in 30 seconds."); }
 }
 
 function placeBet(side){
