@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLY BET - ADMIN</title>
+<style>
+*{box-sizing:border-box} body{margin:0;background:#0a0a0a;color:#fff;font-family:Arial;padding:14px}
+button{cursor:pointer;color:#fff;border:none;padding:10px 14px;border-radius:8px}
+input{width:100%;padding:12px;border-radius:8px;border:none;margin-bottom:10px;color:#000}
+.card{background:#1a1a1a;border-radius:12px;padding:14px;text-align:center}
+.card b{font-size:24px;color:#22c55e;display:block}
+table{width:100%;border-collapse:collapse;font-size:13px} td,th{padding:8px;border-bottom:1px solid #333;text-align:left}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- ADMIN LOGIN GATE -->
+<div id="adminLogin" style="max-width:400px;margin:60px auto;background:#1a1a1a;padding:20px;border-radius:16px;text-align:center;">
+  <h2 style="color:red;">🔐 FLYBET ADMIN</h2>
+  <p style="color:#aaa;font-size:13px;">Enter admin password</p>
+  <input id="adminPass" type="password" placeholder="Admin Password">
+  <button onclick="adminLogin()" style="width:100%;background:#22c55e;color:#000;font-weight:900;">LOGIN AS ADMIN</button>
+  <p id="loginMsg" style="color:red;font-size:13px;"></p>
+  <a href="/" style="color:#888;font-size:13px;">← Back to Game</a>
+</div>
+
+<!-- ADMIN DASHBOARD -->
+<div id="adminDash" class="hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <h2 style="color:red;margin:0;">🔐 ADMIN DASHBOARD</h2>
+    <a href="/" style="color:#fff;background:#333;padding:8px 12px;border-radius:8px;text-decoration:none;">Back to Game</a>
+  </div>
+  <p style="color:#aaa;font-size:13px;">Separate page - players never see this. Bookmark it: /admin.html</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;">
+    <div class="card">Total Deposits<b id="statDeposits">0 KES</b></div>
+    <div class="card">Total Bets<b id="statBets">0</b></div>
+    <div class="card">Total Wins Paid<b id="statWins">0 KES</b></div>
+    <div class="card">Current Balance (This Browser)<b id="statBalance">0 KES</b></div>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+    <button onclick="adminAction('add1000')" style="background:#22c55e;color:#000;font-weight:900;">+ Add 1000 Test Balance</button>
+    <button onclick="adminAction('resetBalance')" style="background:#f59e0b;color:#000;font-weight:900;">Reset Balance to 0</button>
+    <button onclick="adminAction('clearLog')" style="background:#333;">Clear Log</button>
+    <button onclick="location.reload()" style="background:#333;">Refresh Data</button>
+  </div>
+
+  <div style="background:#1a1a1a;border-radius:16px;padding:14px;">
+    <h3 style="margin:0 0 10px 0;">Recent Activity</h3>
+    <table><thead><tr><th>Type</th><th>Amount</th><th>Time</th></tr></thead><tbody id="adminLog"></tbody></table>
+  </div>
+
+  <div style="background:#1a1a1a;border-radius:16px;padding:14px;margin-top:14px;">
+    <h3 style="margin:0 0 8px 0;">Settings</h3>
+    <p style="font-size:13px;color:#aaa;margin:4px 0;">Min Bet: <b style="color:#fff;">50 KES</b> | Min Deposit: <b style="color:#fff;">100 KES</b></p>
+    <p style="font-size:13px;color:#aaa;margin:4px 0;">Game URL: <b style="color:#fff;">/</b> | Admin URL: <b style="color:#fff;">/admin.html</b></p>
+    <p style="font-size:12px;color:#888;">Note: This dashboard reads data saved in this browser (localStorage). For real multi-user stats later, we connect it to your server.js /api/admin.</p>
+  </div>
+</div>
+
+<script>
+function adminLogin(){
+  const p=document.getElementById("adminPass").value;
+  if(p==="admin123"){ // <-- CHANGE THIS PASSWORD
+    document.getElementById("adminLogin").classList.add("hidden");
+    document.getElementById("adminDash").classList.remove("hidden");
+    loadAdmin();
+  } else {
+    document.getElementById("loginMsg").textContent="Wrong password!";
+  }
+}
+function loadAdmin(){
+  const bal=parseInt(localStorage.getItem("flybet_balance")||"0");
+  const dep=parseInt(localStorage.getItem("flybet_total_deposits")||"0");
+  const bets=parseInt(localStorage.getItem("flybet_total_bets")||"0");
+  const wins=parseInt(localStorage.getItem("flybet_total_wins")||"0");
+  document.getElementById("statDeposits").textContent=dep+" KES";
+  document.getElementById("statBets").textContent=bets;
+  document.getElementById("statWins").textContent=wins+" KES";
+  document.getElementById("statBalance").textContent=bal+" KES";
+  const log=JSON.parse(localStorage.getItem("flybet_log")||"[]");
+  document.getElementById("adminLog").innerHTML=log.slice(-20).reverse().map(l=>"<tr><td>"+l.type+"</td><td>"+l.amount+"</td><td>"+l.time+"</td></tr>").join("")||"<tr><td colspan=3>No activity yet</td></tr>";
+}
+function adminAction(a){
+  let bal=parseInt(localStorage.getItem("flybet_balance")||"0");
+  if(a=="add1000"){ bal+=1000; localStorage.setItem("flybet_balance",bal); alert("Added 1000"); }
+  if(a=="resetBalance"){ bal=0; localStorage.setItem("flybet_balance",bal); alert("Balance reset"); }
+  if(a=="clearLog"){ localStorage.setItem("flybet_log","[]"); alert("Log cleared"); }
+  loadAdmin();
+}
+</script>
+</body>
+</html>
