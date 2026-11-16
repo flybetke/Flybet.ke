@@ -148,8 +148,24 @@ async function depositAction(){
   if(!amount||amount<100){ alert("Enter amount min 100"); return; }
   if(!phone){ alert("Enter M-Pesa phone"); return; }
   document.getElementById("depositMsg").textContent="Sending M-Pesa prompt to "+phone+" for KES "+amount+"... Check phone and enter PIN.";
-  setTimeout(()=>{ balance+=amount; updateBal(); document.getElementById("depositMsg").textContent="✅ Deposit KES "+amount+" successful! New balance: KES "+balance; alert("Deposit successful! KES "+amount+" added."); },3000);
-}
+  async function depositAction(){
+  const amount=parseInt(document.getElementById("depositAmount").value);
+  let phone=document.getElementById("depositPhone").value.trim();
+  if(!amount||amount<100){ alert("Enter amount min 100"); return; }
+  if(!phone){ alert("Enter M-Pesa phone"); return; }
+  if(phone.startsWith("0")) phone="254"+phone.slice(1);
+  if(phone.startsWith("+")) phone=phone.slice(1);
+  const token=localStorage.getItem("flybet_token");
+  if(!token){ alert("Please login first"); return; }
+  document.getElementById("depositMsg").textContent="Sending M-Pesa prompt to "+phone+" for KES "+amount+"... Check phone!";
+  try{
+    const res=await fetch("/api/deposit",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({amount,phone})});
+    const data=await res.json();
+    if(!res.ok){ alert(data.error||"STK failed"); document.getElementById("depositMsg").textContent="STK failed: "+(data.error||"Try again"); return; }
+    document.getElementById("depositMsg").textContent="✅ STK sent! Check phone, enter M-Pesa PIN. Balance updates after you pay.";
+    alert("STK Push sent! Check your phone.");
+  }catch(e){ alert("Network error - Check Render is Live."); }
+  }
 function placeBet(n){
   const amt=n==1?bets1:bets2;
   if(amt<50){ alert("Min bet is 50"); return; }
