@@ -1,0 +1,250 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aviator Kenya</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080e19;color:white;font-family:Arial,sans-serif}
+header{padding:17px;background:#111c2c;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:24px;font-weight:bold;color:#ff3548}
+button{border:0;border-radius:7px;padding:12px;background:#e93649;color:white;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.5}
+nav{display:flex;gap:8px}
+nav button{background:#25364b}
+main{max-width:1050px;margin:auto;padding:14px}
+.panel{background:#111c2c;border-radius:12px;padding:15px;margin-bottom:14px}
+.auth{display:flex;gap:10px;flex-wrap:wrap}
+input{background:#07111f;border:1px solid #35475e;color:white;padding:12px;border-radius:7px;width:100%;margin:6px 0}
+.game{height:300px;background:radial-gradient(ellipse at bottom,#173a53,#07111f 70%);border-radius:12px;position:relative;overflow:hidden}
+#multiplier{position:absolute;top:42%;width:100%;text-align:center;font-size:48px;font-weight:bold;color:#ff4356}
+#plane{position:absolute;font-size:43px;left:8%;bottom:30px;transition:none}
+#status{text-align:center;color:#a8bbd0;margin-top:12px}
+.bets{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bet{background:#17263a;border-radius:10px;padding:13px}
+.bet h3{margin-top:0}
+.wallet{color:#51e4a0;font-weight:bold}
+.small{color:#a8b7c9;font-size:12px}
+.hidden{display:none}
+@media(max-width:500px){
+.bets{grid-template-columns:1fr}
+.game{height:260px}
+#multiplier{font-size:39px}
+}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">✈ AVIATOR</div>
+<nav>
+<button onclick="showAuth('login')">Login</button>
+<button onclick="showAuth('register')">Register</button>
+</nav>
+</header>
+
+<main>
+<div class="panel" id="auth">
+<h2 id="authTitle">Player Account</h2>
+<div class="auth">
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+</div>
+<button onclick="accountAction()">Continue</button>
+<button onclick="document.getElementById('auth').classList.add('hidden')">Close</button>
+<p class="small">Account services will be connected to the secure server in the next setup step.</p>
+</div>
+
+<div class="panel">
+<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+<div>
+<strong>AVIATOR KENYA</strong>
+<p class="small">Independent crash game</p>
+</div>
+<div>
+<div class="wallet">Practice balance: <span id="balance">1000</span> credits</div>
+<p class="small">Virtual credits only — no cash value</p>
+</div>
+</div>
+</div>
+
+<div class="game">
+<div id="multiplier">1.00x</div>
+<div id="plane">✈</div>
+</div>
+<div id="status">Waiting for next round...</div>
+
+<div class="panel">
+<h3>Game Information</h3>
+<p>Round: <span id="round">1</span></p>
+<p>Game status: <span id="gameStatus">Waiting</span></p>
+<p class="small">Rounds are independently generated for this practice game.</p>
+</div>
+
+<div class="bets">
+<div class="bet">
+<h3>BET SIDE 1</h3>
+<p class="small">Minimum stake: 50 credits</p>
+<input type="number" id="stake1" min="50" value="50">
+<button id="bet1" onclick="placeBet(1)">PLACE BET</button>
+<button id="cash1" onclick="cashout(1)" disabled>CASH OUT</button>
+<p id="result1">No active bet</p>
+</div>
+
+<div class="bet">
+<h3>BET SIDE 2</h3>
+<p class="small">Minimum stake: 50 credits</p>
+<input type="number" id="stake2" min="50" value="50">
+<button id="bet2" onclick="placeBet(2)">PLACE BET</button>
+<button id="cash2" onclick="cashout(2)" disabled>CASH OUT</button>
+<p id="result2">No active bet</p>
+</div>
+</div>
+
+<div class="panel">
+<h3>Recent Results</h3>
+<div id="history">No rounds completed yet.</div>
+</div>
+
+<div class="panel">
+<h3>Player Dashboard</h3>
+<p>Account: Guest player</p>
+<p>Practice credits: <span id="dashboardBalance">1000</span></p>
+<p>Betting sides: 2</p>
+<p>Minimum stake per side: 50 credits</p>
+<p>Minimum deposit setting: 100 credits (virtual only)</p>
+</div>
+
+<div class="panel">
+<h3>Admin Dashboard</h3>
+<p class="small">Admin account management, transaction records and game administration will be connected securely through the server.</p>
+</div>
+
+<p class="small" style="text-align:center;padding:15px">
+AVIATOR KENYA © 2026<br>
+Independent practice game. Virtual credits only.
+</p>
+</main>
+
+<script>
+let balance=1000;
+let round=1;
+let multiplier=1;
+let running=false;
+let crashed=false;
+let crashPoint=2;
+let bets={1:null,2:null};
+let timer=null;
+
+function updateBalance(){
+document.getElementById("balance").textContent=balance.toFixed(2);
+document.getElementById("dashboardBalance").textContent=balance.toFixed(2);
+}
+
+function showAuth(type){
+document.getElementById("auth").classList.remove("hidden");
+document.getElementById("authTitle").textContent=
+type==="login"?"Player Login":"Player Registration";
+}
+
+function accountAction(){
+alert("Secure registration and login will be connected in Step 3.");
+}
+
+function placeBet(side){
+if(!running){
+alert("Wait for the next round.");
+return;
+}
+if(bets[side]){
+alert("This side already has an active bet.");
+return;
+}
+let amount=Number(document.getElementById("stake"+side).value);
+if(!Number.isFinite(amount)||amount<50){
+alert("Minimum stake is 50 practice credits.");
+return;
+}
+if(amount>balance){
+alert("Insufficient practice credits.");
+return;
+}
+balance-=amount;
+bets[side]={amount:amount,cashed:false};
+updateBalance();
+document.getElementById("result"+side).textContent=
+"Bet placed: "+amount+" credits";
+document.getElementById("cash"+side).disabled=false;
+document.getElementById("bet"+side).disabled=true;
+}
+
+function cashout(side){
+let bet=bets[side];
+if(!running||!bet||bet.cashed)return;
+bet.cashed=true;
+let winnings=bet.amount*multiplier;
+balance+=winnings;
+updateBalance();
+document.getElementById("result"+side).textContent=
+"Cashed out at "+multiplier.toFixed(2)+"x | Won "+winnings.toFixed(2);
+document.getElementById("cash"+side).disabled=true;
+}
+
+function startRound(){
+running=true;
+crashed=false;
+multiplier=1;
+bets={1:null,2:null};
+crashPoint=1.1+Math.random()*7;
+document.getElementById("multiplier").textContent="1.00x";
+document.getElementById("plane").style.left="8%";
+document.getElementById("plane").style.bottom="30px";
+document.getElementById("status").textContent="PLACE YOUR BETS!";
+document.getElementById("gameStatus").textContent="Flying";
+for(let side of [1,2]){
+document.getElementById("result"+side).textContent="No active bet";
+document.getElementById("cash"+side).disabled=true;
+document.getElementById("bet"+side).disabled=false;
+}
+timer=setInterval(()=>{
+multiplier+=0.015+multiplier*0.008;
+document.getElementById("multiplier").textContent=
+multiplier.toFixed(2)+"x";
+let x=Math.min(8+multiplier*9,85);
+let y=Math.min(30+multiplier*8,175);
+document.getElementById("plane").style.left=x+"%";
+document.getElementById("plane").style.bottom=y+"px";
+if(multiplier>=crashPoint)endRound();
+},100);
+}
+
+function endRound(){
+clearInterval(timer);
+running=false;
+crashed=true;
+document.getElementById("multiplier").textContent="FLEW AWAY!";
+document.getElementById("status").textContent=
+"ROUND CRASHED AT "+multiplier.toFixed(2)+"x";
+document.getElementById("gameStatus").textContent="Crashed";
+for(let side of [1,2]){
+let bet=bets[side];
+if(bet&&!bet.cashed){
+document.getElementById("result"+side).textContent=
+"Bet lost: "+bet.amount+" credits";
+}
+document.getElementById("cash"+side).disabled=true;
+document.getElementById("bet"+side).disabled=true;
+}
+let history=document.getElementById("history");
+history.innerHTML="<p>"+round+" — "+multiplier.toFixed(2)+"x</p>"+history.innerHTML;
+round++;
+document.getElementById("round").textContent=round;
+setTimeout(startRound,3000);
+}
+
+updateBalance();
+setTimeout(startRound,2000);
+</script>
+</body>
+</html>
