@@ -117,26 +117,95 @@ app.get("/api/wallet", auth, async (req, res) => {
   res.json(user);
 });
 
-// DEPOSIT REQUEST
+// DEPOSIT REQUEST - WITH STK PUSH
 app.post("/api/deposit", auth, async (req, res) => {
-  const amount = Number(req.body.amount);
+  const { amount, phone } = req.body;
+  const numAmount = Number(amount);
 
-  if (!Number.isFinite(amount) || amount < 100)
+  if (!Number.isFinite(numAmount) || numAmount < 100)
     return res.status(400).json({ error: "Minimum deposit is KSh 100" });
 
-  const transaction = await Transaction.create({
-    userId: req.user.id,
-    type: "deposit",
-    amount,
-    reference: "DEP-" + Date.now()
-  });
+  if (!phone)
+    return res.status(400).json({ error: "Phone number required" });
 
-  // STK Push integration is added after configuring
-  // your Daraja credentials and callback URL.
-  res.json({
-    message: "Deposit request recorded. Payment is not yet confirmed.",
-    transactionId: transaction._id
-  });
+  let formattedPhone = phone.toString().trim();
+  if (formattedPhone.startsWith("0")) formattedPhone = "254" + formattedPhone.slice(1);
+  if (formattedPhone.startsWith("+")) formattedPhone = formattedPhone.slice(1);
+
+  try {
+    // 1. Get Daraja Token from Render Env Vars
+    const authStr = Buffer.from(process.env.DARAJA_CONSUMER_KEY + ":" + process.env.DARAJA_CONSUMER_SECRET).toString("base64");
+    const tokenRes = await axios.get("https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials", {
+      headers: { Authorization: "Basic " + authStr }
+    });
+    const token = tokenRes.data.access_token;
+
+    // 2. Build STK Password
+    const timestamp = new Date().toISOString().replace(/[-:T.]/g,"").slice(0,14);
+    const password = Buffer.from(process.env.DARAJA_SHORTCODE + process.env.DARAJA_PASSKEY + timestamp).toString("base64");
+
+    // 3. Send STK Push
+    const stkRes = await axios.post("https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest", {
+      BusinessShortCode: process.env.DARAJA_SHORTCODE,
+      Password: password,
+      Timestamp: timestamp,
+      TransactionType: "CustomerPayBillOnline",
+      Amount: numAmount,
+      PartyA: formattedPhone,
+      PartyB: process.env.DARAJA_SHORTCODE,
+      PhoneNumber: formattedPhone,
+      CallBackURL: "https://flybet-ke.onrender.com/api/stk-callback",
+      AccountReference: "FLYBET",
+      TransactionDesc: "Flybet Deposit"
+    }, { headers: { Authorization: "Bearer " + token } });
+
+    // 4. Save transaction as PENDING
+    const transaction = await Transaction.create({
+      userId: req.user.id,
+      type: "deposit",
+      amount: numAmount,
+      reference: stkRes.data.CheckoutRequestID || "DEP-" + Date.now(),
+      status: "pending"
+    });
+
+    res.json({
+      message: "STK Push sent! Check your phone and enter M-Pesa PIN.",
+      transactionId: transaction._id,
+      checkoutId: stkRes.data.CheckoutRequestID
+    });
+
+  } catch (e) {
+    console.log("STK Error:", e.response?.data || e.message);
+    res.status(500).json({ error: "STK failed. Check Daraja credentials on Render." });
+  }
+});
+
+// STK CALLBACK - Safaricom calls this after payment
+app.post("/api/stk-callback", async (req, res) => {
+  try {
+    console.log("STK Callback:", JSON.stringify(req.body));
+    const callback = req.body.Body?.stkCallback;
+    if (!callback) return res.json({ ResultCode: 0, ResultDesc: "Accepted" });
+
+    if (callback.ResultCode === 0) {
+      // Payment success - find transaction and credit wallet
+      const checkoutId = callback.CheckoutRequestID;
+      const transaction = await Transaction.findOne({ reference: checkoutId });
+      if (transaction) {
+        transaction.status = "completed";
+        await transaction.save();
+        const user = await User.findById(transaction.userId);
+        if (user) {
+          user.wallet += transaction.amount;
+          await user.save();
+        }
+      }
+    }
+    res.json({ ResultCode: 0, ResultDesc: "Accepted" });
+  } catch (e) {
+    console.log("Callback Error:", e.message);
+    res.json({ ResultCode: 0, ResultDesc: "Accepted" });
+  }
 });
 
 // TWO STAKE SIDES
