@@ -149,7 +149,7 @@ app.post("/api/deposit", auth, async (req, res) => {
       BusinessShortCode: process.env.DARAJA_TILL_NUMBER, // 1833074
 PartyB: process.env.DARAJA_TILL_NUMBER, // 1833074 
 TransactionType: "CustomerBuyGoodsOnline",
-PartyA: // customer's phone
+
       Amount: numAmount,
       PartyA: formattedPhone,
       PartyB: process.env.DARAJA_TILL_NUMBER,
