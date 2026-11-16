@@ -1,70 +1,217 @@
-const express = require('express');
-const axios = require('axios');
-const cors = require('cors');
+
+const express = require("express");
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const axios = require("axios");
+const cors = require("cors");
+require("dotenv").config();
+
 const app = express();
+
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.'));
+app.use(express.static("public"));
 
-// === PAYBILL 323458 DETAILS ===
-const CONSUMER_KEY = 'PASTE_YOUR_CONSUMER_KEY_HERE';      // From Daraja App - Flybet till
-const CONSUMER_SECRET = 'PASTE_YOUR_CONSUMER_SECRET_HERE'; // From Daraja
-const PASSKEY = 'PASTE_YOUR_PASSKEY_HERE';                // From Daraja
-const BUSINESS_SHORTCODE = '323458';       // Your Paybill - VISIBLE TO SAFARICOM ONLY
-const ACCOUNT_NUMBER = '333974921';        // Your Account - HIDDEN FROM PLAYERS
-// Player will NOT see these numbers - only sees Deposit button
-// =================================
+const PORT = process.env.PORT || 3000;
 
-async function getToken() {
-  const url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
-  // When Production approved, change to: https://api.safaricom.co.ke/...
-  const auth = Buffer.from(`${CONSUMER_KEY}:${CONSUMER_SECRET}`).toString('base64');
-  const res = await axios.get(url, { headers: { Authorization: `Basic ${auth}` } });
-  return res.data.access_token;
-}
+app.get("/", (req, res) => {
+  res.send("FlyBet Kenya API is running");
+});
 
-app.post('/api/deposit', async (req, res) => {
-  let { phone, amount } = req.body;
-  // Format: 07xx -> 2547xx
-  let formattedPhone = phone.toString().replace(/^0/, '254').replace(/[^0-9]/g, '');
-  if(formattedPhone.length === 9) formattedPhone = '254' + formattedPhone;
-  
+// DATABASE
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log("Database connected"))
+  .catch(err => console.error("Database error:", err.message));
+
+// USER MODEL
+const User = mongoose.model("User", new mongoose.Schema({
+  username: { type: String, unique: true },
+  phone: { type: String, unique: true },
+  password: String,
+  role: { type: String, default: "user" },
+  wallet: { type: Number, default: 0 }
+}));
+
+// TRANSACTION MODEL
+const Transaction = mongoose.model("Transaction", new mongoose.Schema({
+  userId: mongoose.Schema.Types.ObjectId,
+  type: String,
+  amount: Number,
+  status: { type: String, default: "pending" },
+  reference: String,
+  createdAt: { type: Date, default: Date.now }
+}));
+
+// STAKE MODEL
+const Stake = mongoose.model("Stake", new mongoose.Schema({
+  userId: mongoose.Schema.Types.ObjectId,
+  side: String,
+  amount: Number,
+  status: { type: String, default: "pending" },
+  createdAt: { type: Date, default: Date.now }
+}));
+
+// AUTHENTICATION
+const auth = (req, res, next) => {
   try {
-    const token = await getToken();
-    const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0,14);
-    const password = Buffer.from(`${BUSINESS_SHORTCODE}${PASSKEY}${timestamp}`).toString('base64');
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ error: "Login required" });
 
-    console.log(`STK Push: ${formattedPhone} - ${amount} to Paybill ${BUSINESS_SHORTCODE}`);
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch {
+    res.status(401).json({ error: "Invalid session" });
+  }
+};
 
-    const stkRes = await axios.post('https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest', {
-      BusinessShortCode: BUSINESS_SHORTCODE,
-      Password: password,
-      Timestamp: timestamp,
-      TransactionType: 'CustomerPayBillOnline', // For Paybill
-      Amount: amount,
-      PartyA: formattedPhone,
-      PartyB: BUSINESS_SHORTCODE,              // 323458
-      PhoneNumber: formattedPhone,
-      CallBackURL: 'https://aviator-kenya-co-ke-1.onrender.com/api/callback',
-      AccountReference: ACCOUNT_NUMBER,        // 333974921 - Hidden
-      TransactionDesc: 'Flybet Deposit'
-    }, { headers: { Authorization: `Bearer ${token}` } });
+// ADMIN CHECK
+const admin = (req, res, next) => {
+  if (req.user.role !== "admin")
+    return res.status(403).json({ error: "Admin access required" });
+  next();
+};
 
-    res.json({ success: true, message: 'Check your phone for M-Pesa prompt', data: stkRes.data });
-  } catch (e) {
-    console.error(e.response?.data || e.message);
-    res.status(500).json({ success: false, error: e.response?.data || e.message });
+// REGISTER
+app.post("/api/register", async (req, res) => {
+  try {
+    const { username, phone, password } = req.body;
+
+    if (!username || !phone || !password || password.length < 8)
+      return res.status(400).json({ error: "Enter valid details and an 8-character password" });
+
+    const user = new User({
+      username,
+      phone,
+      password: await bcrypt.hash(password, 12)
+    });
+
+    await user.save();
+    res.status(201).json({ message: "Registration successful" });
+  } catch {
+    res.status(400).json({ error: "Username or phone already registered" });
   }
 });
 
-app.post('/api/callback', (req, res) => {
-  console.log('M-Pesa Callback:', JSON.stringify(req.body, null, 2));
-  // Here you credit user balance
-  // For Paybill 323458 + Account 333974921
-  res.json({ ResultCode: 0, ResultDesc: 'Accepted' });
+// LOGIN
+app.post("/api/login", async (req, res) => {
+  const { phone, password } = req.body;
+  const user = await User.findOne({ phone });
+
+  if (!user || !(await bcrypt.compare(password, user.password)))
+    return res.status(401).json({ error: "Invalid login details" });
+
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "12h" }
+  );
+
+  res.json({
+    token,
+    username: user.username,
+    wallet: user.wallet,
+    role: user.role
+  });
 });
 
-app.get('/', (req, res) => res.send('Flybet M-Pesa Paybill 323458 Running'));
+// WALLET
+app.get("/api/wallet", auth, async (req, res) => {
+  const user = await User.findById(req.user.id).select("wallet");
+  res.json(user);
+});
 
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`Server running on ${PORT} - Paybill ${BUSINESS_SHORTCODE}`));
+// DEPOSIT REQUEST
+app.post("/api/deposit", auth, async (req, res) => {
+  const amount = Number(req.body.amount);
+
+  if (!Number.isFinite(amount) || amount < 100)
+    return res.status(400).json({ error: "Minimum deposit is KSh 100" });
+
+  const transaction = await Transaction.create({
+    userId: req.user.id,
+    type: "deposit",
+    amount,
+    reference: "DEP-" + Date.now()
+  });
+
+  // STK Push integration is added after configuring
+  // your Daraja credentials and callback URL.
+  res.json({
+    message: "Deposit request recorded. Payment is not yet confirmed.",
+    transactionId: transaction._id
+  });
+});
+
+// TWO STAKE SIDES
+app.post("/api/stake", auth, async (req, res) => {
+  const { side, amount } = req.body;
+  const stakeAmount = Number(amount);
+
+  if (!["left", "right"].includes(side))
+    return res.status(400).json({ error: "Invalid stake side" });
+
+  if (!Number.isFinite(stakeAmount) || stakeAmount < 50)
+    return res.status(400).json({ error: "Minimum stake is KSh 50" });
+
+  const user = await User.findById(req.user.id);
+
+  if (user.wallet < stakeAmount)
+    return res.status(400).json({ error: "Insufficient wallet balance" });
+
+  user.wallet -= stakeAmount;
+  await user.save();
+
+  const stake = await Stake.create({
+    userId: user._id,
+    side,
+    amount: stakeAmount
+  });
+
+  res.json({
+    message: "Stake recorded",
+    stakeId: stake._id,
+    remainingWallet: user.wallet
+  });
+});
+
+// USER HISTORY
+app.get("/api/history", auth, async (req, res) => {
+  const deposits = await Transaction.find({ userId: req.user.id });
+  const stakes = await Stake.find({ userId: req.user.id });
+
+  res.json({ deposits, stakes });
+});
+
+// ADMIN DASHBOARD DATA
+app.get("/api/admin/dashboard", auth, admin, async (req, res) => {
+  const users = await User.countDocuments();
+  const deposits = await Transaction.find({ type: "deposit" });
+  const stakes = await Stake.find();
+
+  res.json({
+    totalUsers: users,
+    deposits,
+    stakes
+  });
+});
+
+// CREATE FIRST ADMIN
+// Set ADMIN_SETUP_KEY in your private environment variables.
+app.post("/api/admin/setup", async (req, res) => {
+  if (!process.env.ADMIN_SETUP_KEY ||
+      req.body.setupKey !== process.env.ADMIN_SETUP_KEY)
+    return res.status(403).json({ error: "Not authorized" });
+
+  const user = await User.findOne({ phone: req.body.phone });
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  user.role = "admin";
+  await user.save();
+
+  res.json({ message: "Admin role assigned" });
+});
+
+app.listen(PORT, () => {
+  console.log(`FlyBet Kenya running on port ${PORT}`);
+});
