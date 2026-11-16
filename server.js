@@ -146,10 +146,10 @@ app.post("/api/deposit", auth, async (req, res) => {
 
     // 3. Send STK Push
     const stkRes = await axios.post("https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest", {
-      BusinessShortCode: process.env.DARAJA_SHORTCODE,
-      Password: password,
-      Timestamp: timestamp,
-      TransactionType: "CustomerBuyGoodsOnline",
+      BusinessShortCode: process.env.DARAJA_SHORTCODE, // 1364630 - the Short Code from screenshot
+PartyB: process.env.DARAJA_TILL_NUMBER, // 1833074 - the Till from screenshot
+TransactionType: "CustomerBuyGoodsOnline",
+PartyA: "254795999057", // customer's phone
       Amount: numAmount,
       PartyA: formattedPhone,
       PartyB: process.env.DARAJA_TILL_NUMBER,
