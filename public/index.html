@@ -142,12 +142,7 @@ async function accountAction(){
     document.getElementById("auth").classList.add("hidden");
   }catch(e){ alert("Server not reachable. Try again in 30 seconds."); }
 }
-async function depositAction(){
-  const amount=parseInt(document.getElementById("depositAmount").value);
-  const phone=document.getElementById("depositPhone").value.trim();
-  if(!amount||amount<100){ alert("Enter amount min 100"); return; }
-  if(!phone){ alert("Enter M-Pesa phone"); return; }
-  document.getElementById("depositMsg").textContent="Sending M-Pesa prompt to "+phone+" for KES "+amount+"... Check phone and enter PIN.";
+
   async function depositAction(){
   const amount=parseInt(document.getElementById("depositAmount").value);
   let phone=document.getElementById("depositPhone").value.trim();
