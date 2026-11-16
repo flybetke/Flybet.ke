@@ -135,7 +135,7 @@ app.post("/api/deposit", auth, async (req, res) => {
   try {
     // 1. Get Daraja Token from Render Env Vars
     const authStr = Buffer.from(process.env.DARAJA_CONSUMER_KEY + ":" + process.env.DARAJA_CONSUMER_SECRET).toString("base64");
-    const tokenRes = await axios.get("https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials", {
+    const tokenRes = await axios.get("https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials", {
       headers: { Authorization: "Basic " + authStr }
     });
     const token = tokenRes.data.access_token;
@@ -145,14 +145,14 @@ app.post("/api/deposit", auth, async (req, res) => {
     const password = Buffer.from(process.env.DARAJA_SHORTCODE + process.env.DARAJA_PASSKEY + timestamp).toString("base64");
 
     // 3. Send STK Push
-    const stkRes = await axios.post("https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest", {
+    const stkRes = await axios.post("https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest", {
       BusinessShortCode: process.env.DARAJA_SHORTCODE,
       Password: password,
       Timestamp: timestamp,
-      TransactionType: "CustomerPayBillOnline",
+      TransactionType: "CustomerBuyGoodsOnline",
       Amount: numAmount,
       PartyA: formattedPhone,
-      PartyB: process.env.DARAJA_SHORTCODE,
+      PartyB: process.env.DARAJA_TILL_NUMBER,
       PhoneNumber: formattedPhone,
       CallBackURL: "https://flybet-ke.onrender.com/api/stk-callback",
       AccountReference: "FLYBET",
