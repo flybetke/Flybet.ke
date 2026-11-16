@@ -1,56 +1,51 @@
+FLYBET KENYA 🇰🇪
 
-# ✈️ FLYBET — Aviator Statistics Platform
+FlyBet Kenya – Online Betting Platform
 
-Welcome to FLYBET, an Aviator-style statistics and crash history platform.
+A modern, mobile-friendly platform featuring user accounts, wallet deposits, M-Pesa payments, an admin dashboard and stake management.
 
-## Features
+Features
 
-- Dark Aviator-inspired interface
-- Crash multiplier display
-- Recent crash history
-- Statistics dashboard
-- Two demo betting panels
-- User account interface
-- Admin dashboard preview
-- Mobile responsive design
+- User registration and login
+- User dashboard
+- Admin dashboard
+- M-Pesa Daraja API integration
+- Wallet management
+- Deposits and transaction history
+- Two stake positions
+- Minimum deposit: KSh 100
+- Minimum stake: KSh 50 per position
+- Stake records
+- Game round history
+- Results tracking
+- Mobile-friendly design
 
-## Project Files
+Payment System
 
-| File | Description |
-|---|---|
-| index.html | Main website |
-| style.css | Website styling |
-| app.js | Website functionality |
-| admin.html | Admin dashboard |
-| admin.css | Admin styling |
-| README.md | Project documentation |
+- M-Pesa STK Push
+- Automatic payment confirmation
+- Deposit transaction records
+- Wallet balance management
 
-## Installation
+Technologies
 
-1. Upload all project files to the root of the repository.
-2. Commit changes to the main branch.
-3. Enable GitHub Pages or connect the repository to Netlify.
-4. Open the published website.
+- HTML
+- CSS
+- JavaScript
+- Node.js
+- Express.js
+- Database
+- Safaricom Daraja API
 
-## Admin Dashboard
+Project Structure
 
-Open:
+- "server.js" – Backend server
+- "package.json" – Project dependencies and scripts
+- "index.html" – Main platform interface
+- "README.md" – Project documentation
 
-admin.html
+Platform Name
 
-## Important Information
+FLYBET KENYA
 
-This project currently uses simulated crash results and demo betting controls.
-
-It is not connected to a live Aviator game or betting provider.
-
-Real user accounts, administrator authentication, databases, deposits and withdrawals require secure backend integration and appropriate approvals.
-
-Never expose payment API secrets in frontend files.
-
-## Developer
-
-FLYBET Development Team
-
-© 2026 FLYBET
-
+Your Platform. Your Experience. 🇰🇪
