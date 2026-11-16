@@ -175,7 +175,7 @@ app.post("/api/deposit", auth, async (req, res) => {
     });
 
   } catch (e) {
-    console.log("STK Error:", e.response?.data || e.message);
+  console.log("STK FULL ERROR:", JSON.stringify(e.response?.data || e.message));
     res.status(500).json({ error: "STK failed. Check Daraja credentials on Render." });
   }
 });
