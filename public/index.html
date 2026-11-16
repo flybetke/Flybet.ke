@@ -153,14 +153,14 @@ function showAuth(type){
 async function accountAction(){
   const username=document.getElementById("username").value.trim();
   const password=document.getElementById("password").value;
-const phone=document.getElementById("phone").value.trim();
-if(!username||!phone||!password){ alert("Enter username, phone and password"); return; }
+  const phone=document.getElementById("phone").value.trim();
+  if(!username||!phone||!password){ alert("Enter username, phone and password"); return; }
   const url=authMode==="login"?"/api/login":"/api/register";
-  body:JSON.stringify({username,phone,password})
+  try{
+    const res=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,phone,password})});
     const data=await res.json();
     if(!res.ok){ alert(data.error||"Failed"); return; }
     if(data.token) localStorage.setItem("flybet_token",data.token);
-    if(data.user) document.getElementById("username").value=data.user.username||username;
     alert(authMode==="login"?"Logged in as "+username:"Account created for "+username);
     document.getElementById("auth").classList.add("hidden");
   }catch(e){ alert("Server not reachable. Try again in 30 seconds."); }
