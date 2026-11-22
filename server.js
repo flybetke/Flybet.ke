@@ -73,11 +73,11 @@ app.post("/api/register", async (req, res) => {
   try {
     const { username, phone, password } = req.body;
 
-    if (!username || !phone || !password || password.length < 8)
+    if (!phone || !password || password.length < 8)
       return res.status(400).json({ error: "Enter valid details and an 8-character password" });
 
     const user = new User({
-      username,
+      
       phone,
       password: await bcrypt.hash(password, 12)
     });
@@ -142,12 +142,12 @@ app.post("/api/deposit", auth, async (req, res) => {
 
     // 2. Build STK Password
     const timestamp = new Date().toISOString().replace(/[-:T.]/g,"").slice(0,14);
-    const password = Buffer.from(process.env.DARAJA_TILL_NUMBER + process.env.DARAJA_PASSKEY + timestamp)
+    const password = Buffer.from(process.env.DARAJA_SHORTCODE + process.env.DARAJA_PASSKEY + timestamp)
 
     // 3. Send STK Push
     const stkRes = await axios.post("https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest", {
-      BusinessShortCode: process.env.DARAJA_TILL_NUMBER, // 1833074
-PartyB: process.env.DARAJA_TILL_NUMBER, // 1833074 
+      BusinessShortCode: process.env.DARAJA_SHORTCODE, // 5840034
+PartyB: process.env.DARAJA_TILL_NUMBER, // 3463300
 TransactionType: "CustomerBuyGoodsOnline",
 
       Amount: numAmount,
@@ -167,7 +167,6 @@ TransactionType: "CustomerBuyGoodsOnline",
       reference: stkRes.data.CheckoutRequestID || "DEP-" + Date.now(),
       status: "pending"
     });
-
     res.json({
       message: "STK Push sent! Check your phone and enter M-Pesa PIN.",
       transactionId: transaction._id,
