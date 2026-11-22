@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlyBet - Admin Dashboard</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+  body{background:#0f1115;color:#fff;display:flex;min-height:100vh}
+  .sidebar{width:220px;background:#15181f;padding:20px;position:fixed;height:100vh}
+  .sidebar h2{color:#00e676;margin-bottom:30px}
+  .sidebar h2 span{color:#ffc107}
+  .sidebar a{display:block;color:#ccc;text-decoration:none;padding:12px 10px;border-radius:8px;margin-bottom:5px}
+  .sidebar a.active,.sidebar a:hover{background:#00c853;color:#fff}
+  .main{margin-left:220px;flex:1;padding:20px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+  .topbar input{padding:10px;border-radius:8px;border:none;background:#1e222b;color:#fff;width:300px}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px}
+  .card{background:#1a1e27;padding:20px;border-radius:12px}
+  .card small{color:#aaa}
+  .card h3{font-size:24px;margin-top:8px}
+  .green{color:#00e676}.yellow{color:#ffc107}.red{color:#ff5252}.blue{color:#40c4ff}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+  .box{background:#1a1e27;padding:20px;border-radius:12px}
+  .box h3{margin-bottom:15px}
+  label{display:block;margin:12px 0 5px;color:#aaa;font-size:13px}
+  input[type="number"],select{width:100%;padding:10px;border-radius:8px;border:1px solid #333;background:#0f1115;color:#fff}
+  button{padding:12px 18px;border:none;border-radius:8px;background:#00c853;color:#fff;font-weight:bold;cursor:pointer;margin-top:15px;width:100%}
+  button:hover{background:#00a844}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:10px;text-align:left;border-bottom:1px solid #2a2f3a}
+  th{color:#aaa}
+  .badge{padding:4px 10px;border-radius:20px;font-size:12px}
+  .badge-low{background:#ff525233;color:#ff5252}
+  .badge-mid{background:#ffc10733;color:#ffc107}
+  .badge-high{background:#00e67633;color:#00e676}
+  .switch{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .status{font-size:13px;color:#00e676}
+  @media(max-width:900px){.cards,.grid{grid-template-columns:1fr}.sidebar{display:none}.main{margin-left:0}}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>FLY <span>BET</span></h2>
+  <a href="#" class="active">📊 Dashboard</a>
+  <a href="#">👥 Users</a>
+  <a href="#">🎮 Crash Rounds</a>
+  <a href="#">💰 Deposits</a>
+  <a href="#">🏧 Withdrawals</a>
+  <a href="#">⚙️ Settings</a>
+  <p style="margin-top:30px;color:#666;font-size:12px">Admin v1.0<br>Fair Mode: ON<br>No manual crash edit</p>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <h1>Admin Dashboard</h1>
+    <div>
+      <span class="status" id="liveStatus">● LIVE</span>
+      <span style="margin-left:15px">Admin</span>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card"><small>Total Rounds</small><h3 id="totalRounds">0</h3></div>
+    <div class="card"><small>Current Round</small><h3 class="yellow" id="currentRound">-</h3></div>
+    <div class="card"><small>Last Crash</small><h3 class="green" id="lastCrash">-</h3></div>
+    <div class="card"><small>Game Status</small><h3 class="blue" id="gameStatus">RUNNING</h3></div>
+  </div>
+
+  <div class="grid">
+    <!-- SETTINGS -->
+    <div class="box">
+      <h3>⚙️ Game Settings - Legit Controls</h3>
+      <label>Min Bet (KES)</label>
+      <input type="number" id="minBet" value="10">
+      <label>Max Bet (KES)</label>
+      <input type="number" id="maxBet" value="5000">
+      <label>Max Win (KES)</label>
+      <input type="number" id="maxWin" value="50000">
+      <label>Round Duration</label>
+      <select id="roundTime">
+        <option value="10000">10 Seconds</option>
+        <option value="15000">15 Seconds</option>
+        <option value="30000">30 Seconds</option>
+      </select>
+      <div class="switch">
+        <input type="checkbox" id="isPaused">
+        <label style="margin:0">Pause Game (Maintenance)</label>
+      </div>
+      <button onclick="saveSettings()">Save Settings</button>
+      <p id="saveMsg" style="margin-top:10px;color:#00e676;font-size:13px"></p>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="box">
+      <h3>🎮 Recent Crash History</h3>
+      <table>
+        <thead><tr><th>Round</th><th>Crash</th><th>Hash</th><th>Level</th></tr></thead>
+        <tbody id="historyBody">
+          <tr><td colspan="4">Loading...</td></tr>
+        </tbody>
+      </table>
+      <button onclick="loadData()" style="background:#333">Refresh</button>
+    </div>
+  </div>
+
+  <div class="box" style="margin-top:15px">
+    <h3>📝 How This Works (Fair)</h3>
+    <p style="color:#aaa;line-height:1.6;font-size:14px">
+      Crash point is generated from a SHA256 hash before the round starts.
+      Admin can change limits and pause the game, but cannot set or edit the next crash point.
+      This keeps the game provably fair for players.
+    </p>
+  </div>
+</div>
+
+<script>
+async function loadData(){
+  try{
+    let s = await fetch('/api/admin/settings').then(r=>r.json());
+    document.getElementById('minBet').value = s.minBet;
+    document.getElementById('maxBet').value = s.maxBet;
+    document.getElementById('maxWin').value = s.maxWin;
+    document.getElementById('isPaused').checked = s.isPaused;
+    document.getElementById('gameStatus').textContent = s.isPaused ? 'PAUSED' : 'RUNNING';
+    document.getElementById('gameStatus').style.color = s.isPaused ? '#ff5252' : '#40c4ff';
+    document.getElementById('liveStatus').textContent = s.isPaused ? '● PAUSED' : '● LIVE';
+
+    let h = await fetch('/api/history').then(r=>r.json());
+    document.getElementById('totalRounds').textContent = h.length ? h[0].roundId : 0;
+    if(h.length){
+      document.getElementById('currentRound').textContent = '#' + h[0].roundId;
+      document.getElementById('lastCrash').textContent = h[0].crashPoint + 'x';
+    }
+    document.getElementById('historyBody').innerHTML = h.slice(0,10).map(x=>{
+      let cls = x.crashPoint < 2 ? 'badge-low' : x.crashPoint < 5 ? 'badge-mid' : 'badge-high';
+      let label = x.crashPoint < 2 ? 'LOW' : x.crashPoint < 5 ? 'MED' : 'HIGH';
+      return `<tr><td>#${x.roundId}</td><td><b>${x.crashPoint}x</b></td><td style="color:#888">${x.hash.slice(0,12)}...</td><td><span class="badge ${cls}">${label}</span></td></tr>`;
+    }).join('');
+  }catch(e){
+    document.getElementById('historyBody').innerHTML = '<tr><td colspan="4">Server not connected. Run npm start</td></tr>';
+  }
+}
+
+async function saveSettings(){
+  await fetch('/api/admin/settings',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      minBet: document.getElementById('minBet').value,
+      maxBet: document.getElementById('maxBet').value,
+      maxWin: document.getElementById('maxWin').value,
+      isPaused: document.getElementById('isPaused').checked
+    })
+  });
+  document.getElementById('saveMsg').textContent = 'Settings saved successfully!';
+  setTimeout(()=>document.getElementById('saveMsg').textContent='',3000);
+  loadData();
+}
+
+loadData();
+setInterval(loadData, 5000);
+</script>
+</body>
+</html>
