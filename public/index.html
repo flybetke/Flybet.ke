@@ -11,14 +11,13 @@ button{cursor:pointer;color:#fff} input{color:#000}
 .logo{color:red;font-weight:900;font-size:22px}
 .bal{color:#22c55e;font-weight:900;font-size:18px}
 .depBtn{background:#22c55e;border:none;padding:8px 14px;border-radius:8px;font-weight:900;color:#000}
-/* LAYOUT - MAIN + DEPOSIT SIDE */
 .layout{display:flex;gap:10px;align-items:flex-start;padding:0 5px}
 .main{flex:1;min-width:0}
 .side{width:320px;position:sticky;top:60px}
 @media(max-width:800px){ .layout{flex-direction:column} .side{width:100%;position:static} }
 .game{background:#000;height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;border-radius:16px;margin:10px 0}
-#multiplier{font-size:52px;font-weight:900}
-#plane{font-size:50px;position:absolute;left:20px;bottom:20px}
+#multiplier{font-size:52px;font-weight:900;z-index:2}
+#plane{font-size:50px;position:absolute;left:20px;bottom:20px;z-index:1}
 .panel{background:#1a1a1a;margin:10px;border-radius:16px;padding:12px}
 .tabRow{display:flex;justify-content:center;gap:10px;margin-bottom:10px}
 .tabRow button{background:#333;border:none;padding:8px 30px;border-radius:20px}
@@ -47,7 +46,6 @@ button{cursor:pointer;color:#fff} input{color:#000}
 </div>
 
 <div class="layout">
-  <!-- LEFT: GAME + BETS -->
   <div class="main">
     <div class="panel auth" id="auth">
       <h3 style="margin:0 0 10px 0;">Login / Register</h3>
@@ -61,12 +59,13 @@ button{cursor:pointer;color:#fff} input{color:#000}
       <button onclick="accountAction()" id="authBtn" style="background:#22c55e;color:#000;">Continue</button>
     </div>
 
+    <!-- FIXED: Removed second nested <div class="game">, added missing plane -->
     <div class="game">
-      <div id="historyBar" style="display:flex;gap:6px;overflow-x:auto;padding:8px;background:#111;border-radius:10px;margin-bottom:8px;font-weight:bold;"></div>
-<div class="game">
+      <div id="historyBar" style="display:flex;gap:6px;overflow-x:auto;padding:8px;background:#111;border-radius:10px;margin-bottom:8px;font-weight:bold;position:absolute;top:8px;left:8px;right:8px;z-index:3;"></div>
+      <div id="plane">✈️</div>
       <div id="multiplier">1.00x</div>
       <div id="gameStatus" style="color:#aaa;">Waiting for next round...</div>
-      <button id="cashBtn" onclick="cashOut()" style="display:none;background:#facc15;color:#000;border:none;padding:10px 20px;border-radius:10px;font-weight:900;margin-top:10px;">CASH OUT</button>
+      <button id="cashBtn" onclick="cashOut()" style="display:none;background:#facc15;color:#000;border:none;padding:10px 20px;border-radius:10px;font-weight:900;margin-top:10px;z-index:3;">CASH OUT</button>
     </div>
 
     <div class="panel">
@@ -99,7 +98,6 @@ button{cursor:pointer;color:#fff} input{color:#000}
     </div>
   </div>
 
-  <!-- RIGHT: DEPOSIT SIDE -->
   <div class="side">
     <div class="panel" id="depositPanel" style="border:1px solid #22c55e;margin:10px 0;">
       <h3 style="margin:0 0 8px 0;color:#22c55e;">💰 DEPOSIT</h3>
@@ -123,6 +121,8 @@ button{cursor:pointer;color:#fff} input{color:#000}
 let authMode="login";
 let balance=parseInt(localStorage.getItem("flybet_balance")||"0");
 let bets1=50, bets2=50, activeBet=null, currentMult=1.00, gameRunning=false, crashPoint=0, timer=null;
+let history=[];
+let phase="waiting";
 function updateBal(){ document.getElementById("balance").textContent=balance.toFixed(2)+" KES"; localStorage.setItem("flybet_balance",balance); }
 updateBal();
 function setAuth(m){ authMode=m; document.getElementById("loginTab").style.background=m=="login"?"#22c55e":"#333"; document.getElementById("regTab").style.background=m=="register"?"#22c55e":"#333"; document.getElementById("authBtn").textContent=m=="login"?"Login":"Register"; }
@@ -143,8 +143,7 @@ async function accountAction(){
     document.getElementById("auth").classList.add("hidden");
   }catch(e){ alert("Server not reachable. Try again in 30 seconds."); }
 }
-
-  async function depositAction(){
+async function depositAction(){
   const amount=parseInt(document.getElementById("depositAmount").value);
   let phone=document.getElementById("depositPhone").value.trim();
   if(!amount||amount<100){ alert("Enter amount min 100"); return; }
@@ -161,37 +160,77 @@ async function accountAction(){
     document.getElementById("depositMsg").textContent="✅ STK sent! Check phone, enter M-Pesa PIN. Balance updates after you pay.";
     alert("STK Push sent! Check your phone.");
   }catch(e){ alert("Network error - Check Render is Live."); }
-  }
+}
+
+// FIXED: placeBet no longer starts game, only books bet for next flight
 function placeBet(n){
   const amt=n==1?bets1:bets2;
   if(amt<50){ alert("Min bet is 50"); return; }
   if(balance<amt){ alert("Low balance. Deposit first. Min deposit 100"); return; }
-  if(gameRunning){ alert("Wait for next round"); return; }
+  if(phase!=="waiting"){ alert("Wait for next round"); return; }
+  if(activeBet){ alert("You already placed a bet for this round"); return; }
   balance-=amt; updateBal(); activeBet={amt:amt,slot:n};
   document.getElementById("betBtn"+n).textContent="Waiting...";
-  startGame();
+}
+
+// FIXED: New automatic loop - waiting -> flying -> crashed -> waiting
+function updateHistoryBar(){
+  document.getElementById("historyBar").innerHTML = history.slice(0,8).map(h=>{
+    let c = h < 2 ? "#ef4444" : h < 5 ? "#facc15" : "#22c55e";
+    return `<span style="background:#222;color:${c};padding:4px 8px;border-radius:20px;font-size:12px;">${h.toFixed(2)}x</span>`;
+  }).join('');
+}
+function startWaiting(){
+  phase="waiting"; currentMult=1.00; gameRunning=false;
+  document.getElementById("multiplier").textContent="1.00x";
+  document.getElementById("multiplier").style.color="#fff";
+  document.getElementById("plane").textContent="✈️";
+  document.getElementById("plane").style.left="20px";
+  document.getElementById("plane").style.bottom="20px";
+  document.getElementById("cashBtn").style.display="none";
+  resetBetBtns();
+  let count=5;
+  document.getElementById("gameStatus").textContent="Next flight in "+count+"... Place your bet!";
+  let waitTimer=setInterval(()=>{
+    count--;
+    if(count<=0){ clearInterval(waitTimer); startGame(); }
+    else document.getElementById("gameStatus").textContent="Next flight in "+count+"... Place your bet!";
+  },1000);
 }
 function startGame(){
-  gameRunning=true; currentMult=1.00; crashPoint=1.2+Math.random()*5;
+  phase="flying"; gameRunning=true; currentMult=1.00; crashPoint=1.2+Math.random()*5;
   document.getElementById("gameStatus").textContent="Flying...";
-  document.getElementById("cashBtn").style.display="block";
+  document.getElementById("gameStatus").style.color="#22c55e";
+  if(activeBet) document.getElementById("cashBtn").style.display="block";
   timer=setInterval(()=>{
     currentMult+=0.05;
     document.getElementById("multiplier").textContent=currentMult.toFixed(2)+"x";
-    document.getElementById("plane").style.left=(20+currentMult*10)+"px";
-    document.getElementById("plane").style.bottom=(20+currentMult*8)+"px";
-    if(currentMult>=crashPoint){ clearInterval(timer); gameRunning=false; document.getElementById("gameStatus").textContent="💥 Crashed at "+currentMult.toFixed(2)+"x"; document.getElementById("cashBtn").style.display="none"; if(activeBet){ addBetRow(activeBet.amt,currentMult,0); activeBet=null; } resetBetBtns(); setTimeout(()=>{ document.getElementById("multiplier").textContent="1.00x"; document.getElementById("plane").style.left="20px"; document.getElementById("plane").style.bottom="20px"; document.getElementById("gameStatus").textContent="Waiting for next round..."; },3000); }
+    document.getElementById("multiplier").style.color="#22c55e";
+    let px=20+currentMult*10; let py=20+currentMult*8;
+    if(px>280) px=280; if(py>180) py=180;
+    document.getElementById("plane").style.left=px+"px";
+    document.getElementById("plane").style.bottom=py+"px";
+    if(currentMult>=crashPoint){
+      clearInterval(timer); gameRunning=false; phase="crashed";
+      history.unshift(currentMult); updateHistoryBar();
+      document.getElementById("gameStatus").textContent="💥 Crashed at "+currentMult.toFixed(2)+"x";
+      document.getElementById("gameStatus").style.color="#ef4444";
+      document.getElementById("multiplier").style.color="#ef4444";
+      document.getElementById("plane").textContent="💥";
+      document.getElementById("cashBtn").style.display="none";
+      if(activeBet){ addBetRow(activeBet.amt,currentMult,0); activeBet=null; }
+      setTimeout(startWaiting,3000);
+    }
   },100);
 }
+// FIXED: cashOut no longer stops plane with clearInterval
 function cashOut(){
   if(!activeBet||!gameRunning) return;
-  clearInterval(timer); gameRunning=false;
   const win=Math.floor(activeBet.amt*currentMult);
   balance+=win; updateBal();
   addBetRow(activeBet.amt,currentMult,win);
   document.getElementById("gameStatus").textContent="✅ Cashed out at "+currentMult.toFixed(2)+"x - Won KES "+win;
-  document.getElementById("cashBtn").style.display="none"; activeBet=null; resetBetBtns();
-  setTimeout(()=>{ document.getElementById("multiplier").textContent="1.00x"; document.getElementById("plane").style.left="20px"; document.getElementById("plane").style.bottom="20px"; document.getElementById("gameStatus").textContent="Waiting for next round..."; },3000);
+  document.getElementById("cashBtn").style.display="none"; activeBet=null;
 }
 function resetBetBtns(){ document.getElementById("betBtn1").innerHTML='Bet<br><small id="betBtnText1">'+bets1.toFixed(2)+' KES</small>'; document.getElementById("betBtn2").innerHTML='Bet<br><small id="betBtnText2">'+bets2.toFixed(2)+' KES</small>'; }
 function addBetRow(amt,mult,win){
@@ -202,6 +241,8 @@ function addBetRow(amt,mult,win){
   list.prepend(div);
   document.getElementById("totalBets").textContent=parseInt(document.getElementById("totalBets").textContent)+1;
 }
+// FIXED: Auto-start plane on page load
+startWaiting();
 </script>
 </body>
-  </html>
+</html>
