@@ -1,0 +1,14 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FlyBet Admin</title>
+<style>body{margin:0;background:#0a0a0a;color:#fff;font-family:Arial;padding:16px}input{padding:10px;margin:5px;border-radius:8px;border:none}button{padding:10px 16px;border:none;border-radius:8px;background:#22c55e;font-weight:900;cursor:pointer}.card{background:#1a1a1a;padding:16px;border-radius:12px;margin:10px 0}table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #333;text-align:left;font-size:13px}</style></head>
+<body><h1>✈️ FLYBET ADMIN</h1>
+<div id="login"><input id="u" placeholder="Admin user"><input id="p" type="password" placeholder="Password"><button onclick="login()">Login</button></div>
+<div id="dash" style="display:none">
+<div class="card"><b>Users:</b> <span id="tu">0</span> | <b>Total Balance:</b> <span id="tb">0</span> KES | <b>Total Deposits PAID:</b> <span id="td">0</span> KES | <b>Pending:</b> <span id="pend">0</span></div>
+<div class="card"><h3>Users</h3><table><thead><tr><th>Username</th><th>Phone</th><th>Balance</th><th>Created</th></tr></thead><tbody id="users"></tbody></table></div>
+<div class="card"><h3>Deposits</h3><table><thead><tr><th>Phone</th><th>Amount</th><th>Status</th><th>Time</th></tr></thead><tbody id="deps"></tbody></table></div>
+<button onclick="load()">Refresh</button></div>
+<script>
+let token="";
+async function login(){const r=await fetch("/api/admin/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user:document.getElementById("u").value,pass:document.getElementById("p").value})});const d=await r.json();if(!r.ok){alert(d.error);return}token=d.token;document.getElementById("login").style.display="none";document.getElementById("dash").style.display="block";load()}
+async function load(){const r=await fetch("/api/admin/stats",{headers:{Authorization:"Bearer "+token}});const d=await r.json();document.getElementById("tu").textContent=d.totalUsers;document.getElementById("tb").textContent=d.totalBalance;document.getElementById("td").textContent=d.totalDeposits;document.getElementById("pend").textContent=d.pending;document.getElementById("users").innerHTML=d.users.map(u=>`<tr><td>${u.username}</td><td>${u.phone}</td><td>${u.balance}</td><td>${new Date(u.created).toLocaleString()}</td></tr>`).join("");document.getElementById("deps").innerHTML=d.deposits.map(x=>`<tr><td>${x.phone}</td><td>${x.amount}</td><td>${x.status}</td><td>${new Date(x.time).toLocaleString()}</td></tr>`).join("")}
+</script></body></html>
