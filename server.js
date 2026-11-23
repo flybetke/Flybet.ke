@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
-const cors = require("cors");
+const cors = require("cors");const path = require("path");
 require("dotenv").config();
 
 const app = express();
@@ -12,6 +12,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
 
 const PORT = process.env.PORT || 3000;
 
@@ -278,4 +279,6 @@ app.post("/api/admin/setup", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`FlyBet Kenya running on port ${PORT}`);
+});app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
